@@ -1,0 +1,72 @@
+
+./app/Main.hs,52
+module Main Main0,1
+main main4,5
+main main5,6
+
+./Setup.hs,15
+main main1,2
+
+./src/Text/LaTeX/CrossRef/Orphans.hs,68
+module Text.LaTeX.CrossRef.Orphans Text.LaTeX.CrossRef.Orphans2,3
+
+./src/Text/LaTeX/CrossRef/Types.hs,1303
+module Text.LaTeX.CrossRef.Types Text.LaTeX.CrossRef.Types3,4
+type Level Level20,21
+type Label Label21,22
+data Counter Counter23,24
+data Counter = Counter Counter23,24
+data Counter = Counter { _name _name23,24
+                       , _dependents _dependents24,25
+data RefItem RefItem28,29
+data RefItem = Item Item28,29
+             | Environment Environment29,30
+             | Section Section30,31
+type Context Context38,39
+data RefFState RefFState39,40
+data RefFState = RefFState RefFState39,40
+data RefFState = RefFState { _context _context39,40
+                           , _counters _counters40,41
+                           , _resolved _resolved41,42
+newtype RefBState RefBState45,46
+newtype RefBState = RefBState RefBState45,46
+newtype RefBState = RefBState { _numbers _numbers45,46
+type Machine Machine49,50
+emptyRefBState emptyRefBState51,52
+emptyRefBState emptyRefBState52,53
+emptyRefFState emptyRefFState54,55
+emptyRefFState emptyRefFState55,56
+emptyRefState emptyRefState57,58
+emptyRefState emptyRefState58,59
+data RefOptions RefOptions60,61
+data RefOptions = RefOptions RefOptions60,61
+data RefOptions = RefOptions { subsumes subsumes60,61
+                             , numberedEnvs numberedEnvs61,62
+instance instance67,68
+
+./src/Text/LaTeX/CrossRef.hs,608
+module Text.LaTeX.CrossRefText.LaTeX.CrossRef1,2
+import import8,9
+procCiteRef procCiteRef25,26
+procCiteRef procCiteRef26,27
+resetDependents resetDependents32,33
+resetDependents resetDependents33,34
+tick tick38,39
+tick tick39,40
+saveCounter saveCounter53,54
+saveCounter saveCounter54,55
+fixArgs fixArgs58,59
+fixArgs fixArgs59,60
+withCtx withCtx61,62
+withCtx withCtx62,63
+refProc refProc64,65
+refProc refProc65,66
+  | T.pack name `HS.member`HS.member88,89
+mapArgM mapArgM101,102
+mapArgM mapArgM102,103
+parseSection parseSection110,111
+parseSection parseSection111,112
+
+./test/Spec.hs,30
+main main0,1
+main main1,2

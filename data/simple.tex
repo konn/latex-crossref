@@ -1,0 +1,39 @@
+\documentclass[a4paper]{article}
+\title{Cross-ref Example}
+\author{Hiromi ISHII}
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+\maketitle
+
+\section{The first section}\label{sec:first-section}
+
+This section is Section \ref{sec:first-section}.
+
+\begin{lemma}\label{lem:1}
+ This Lemma \ref{lem:1} is not so important.
+\end{lemma}
+
+Following \ref{item:1}--\ref{item:2} are listed:
+\begin{enumerate}
+ \item \label{item:1} This is the first item.
+ \item This is the second.
+ \item \label{item:2} The last item.
+\end{enumerate}
+
+I prefer item~\ref{item:1}.
+
+\section{Another section}
+
+In previous Section \ref{sec:first-section}, bra bra.
+
+\begin{enumerate}
+ \item First
+ \item Second\label{item:4}
+ \item Third
+ \item Fourth.
+\end{enumerate}
+
+The item \ref{item:4} was referenced.
+
+\end{document}
