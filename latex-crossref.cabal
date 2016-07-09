@@ -26,6 +26,7 @@ library
                      , bytestring
                      , mtl
                      , HaTeX
+                     , roman-numerals
                      , lens
                      , reflection
                      , tardis

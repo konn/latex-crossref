@@ -21,6 +21,7 @@ import           Data.Reflection        (Given (..), give)
 import qualified Data.Text              as T
 import           Text.LaTeX.Base.Render (render)
 import           Text.LaTeX.Base.Syntax (LaTeX (..), MathType (..), TeXArg (..))
+import           Text.Numeral.Roman     (toRoman)
 
 default (Integer)
 
@@ -135,12 +136,8 @@ formatCounter' cnts ri i = foldMap format fmts
 
 formatNumeral :: Numeral -> Integer -> LaTeX
 formatNumeral Arabic i = TeXRaw $ T.pack $ show i
-formatNumeral SmallRoman i =
-  let digit = ["0", "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"]
-  in TeXRaw $ fromMaybe (T.pack $ show i) $ digit ^? ix (fromInteger i)
-formatNumeral CapitalRoman i =
-  let digit = ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
-  in TeXRaw $ fromMaybe (T.pack $ show i) $ digit ^? ix (fromInteger i)
+formatNumeral SmallRoman i = TeXRaw $ T.toLower $ toRoman i
+formatNumeral CapitalRoman i = TeXRaw $ T.toUpper $ toRoman i
 formatNumeral SmallGreek i =
   fromMaybe (TeXRaw $ T.pack $ show i) $
   map (TeXMath Dollar . TeXCommS)

@@ -10,62 +10,89 @@ main main1,2
 ./src/Text/LaTeX/CrossRef/Orphans.hs,68
 module Text.LaTeX.CrossRef.Orphans Text.LaTeX.CrossRef.Orphans2,3
 
-./src/Text/LaTeX/CrossRef/Types.hs,1303
+./src/Text/LaTeX/CrossRef/Types.hs,2042
 module Text.LaTeX.CrossRef.Types Text.LaTeX.CrossRef.Types3,4
 type Level Level20,21
 type Label Label21,22
-data Counter Counter23,24
-data Counter = Counter Counter23,24
-data Counter = Counter { _name _name23,24
-                       , _dependents _dependents24,25
-data RefItem RefItem28,29
-data RefItem = Item Item28,29
-             | Environment Environment29,30
-             | Section Section30,31
-type Context Context38,39
-data RefFState RefFState39,40
-data RefFState = RefFState RefFState39,40
-data RefFState = RefFState { _context _context39,40
-                           , _counters _counters40,41
-                           , _resolved _resolved41,42
-newtype RefBState RefBState45,46
-newtype RefBState = RefBState RefBState45,46
-newtype RefBState = RefBState { _numbers _numbers45,46
-type Machine Machine49,50
-emptyRefBState emptyRefBState51,52
-emptyRefBState emptyRefBState52,53
-emptyRefFState emptyRefFState54,55
-emptyRefFState emptyRefFState55,56
-emptyRefState emptyRefState57,58
-emptyRefState emptyRefState58,59
-data RefOptions RefOptions60,61
-data RefOptions = RefOptions RefOptions60,61
-data RefOptions = RefOptions { subsumes subsumes60,61
-                             , numberedEnvs numberedEnvs61,62
-instance instance67,68
+data RefVal RefVal22,23
+data RefVal = Number Number22,23
+            | String String23,24
+data Counter Counter26,27
+data Counter = Counter Counter26,27
+data Counter = Counter { _name _name26,27
+                       , _dependents _dependents27,28
+data RefItem RefItem31,32
+data RefItem = Item Item31,32
+             | Environment Environment32,33
+             | Section Section33,34
+type Counters Counters41,42
+type Context Context42,43
+type LabelDic LabelDic43,44
+data RefFState RefFState44,45
+data RefFState = RefFState RefFState44,45
+data RefFState = RefFState { _context _context44,45
+                           , _counters _counters45,46
+                           , _resolved _resolved46,47
+newtype RefBState RefBState50,51
+newtype RefBState = RefBState RefBState50,51
+newtype RefBState = RefBState { _numbers _numbers50,51
+type Machine Machine54,55
+emptyRefBState emptyRefBState56,57
+emptyRefBState emptyRefBState57,58
+emptyRefFState emptyRefFState59,60
+emptyRefFState emptyRefFState60,61
+emptyRefState emptyRefState62,63
+emptyRefState emptyRefState63,64
+data Numeral Numeral65,66
+data Numeral = ArabicArabic65,66
+             | SmallRomanSmallRoman66,67
+             | CapitalRomanCapitalRoman67,68
+             | SmallGreekSmallGreek68,69
+             | CapitalGreekCapitalGreek69,70
+             | SmallAlphaSmallAlpha70,71
+             | LargeAlphaLargeAlpha71,72
+data LabelFormat LabelFormat75,76
+data LabelFormat = ThisCounter ThisCounter75,76
+                 | OtherCounter OtherCounter76,77
+                 | Str Str77,78
+type Formats Formats80,81
+data RefOptions RefOptions81,82
+data RefOptions = RefOptions RefOptions81,82
+data RefOptions = RefOptions { subsumes subsumes81,82
+                             , numberedEnvs numberedEnvs82,83
+                             , formats formats83,84
+instance instance87,88
 
-./src/Text/LaTeX/CrossRef.hs,608
+./src/Text/LaTeX/CrossRef.hs,909
 module Text.LaTeX.CrossRefText.LaTeX.CrossRef1,2
-import import8,9
-procCiteRef procCiteRef25,26
-procCiteRef procCiteRef26,27
-resetDependents resetDependents32,33
-resetDependents resetDependents33,34
-tick tick38,39
-tick tick39,40
-saveCounter saveCounter53,54
-saveCounter saveCounter54,55
-fixArgs fixArgs58,59
-fixArgs fixArgs59,60
-withCtx withCtx61,62
-withCtx withCtx62,63
-refProc refProc64,65
-refProc refProc65,66
-  | T.pack name `HS.member`HS.member88,89
-mapArgM mapArgM101,102
-mapArgM mapArgM102,103
-parseSection parseSection110,111
-parseSection parseSection111,112
+import import9,10
+procCrossRef procCrossRef27,28
+procCrossRef procCrossRef28,29
+procCrossRef' procCrossRef'30,31
+procCrossRef' procCrossRef'31,32
+resetDependents resetDependents37,38
+resetDependents resetDependents38,39
+tick tick43,44
+tick tick44,45
+saveCounter saveCounter58,59
+saveCounter saveCounter59,60
+fixArgs fixArgs63,64
+fixArgs fixArgs64,65
+withCtx withCtx66,67
+withCtx withCtx67,68
+refProc refProc69,70
+refProc refProc70,71
+  | T.pack name `HS.member`HS.member95,96
+mapArgM mapArgM110,111
+mapArgM mapArgM111,112
+formatCounter formatCounter119,120
+formatCounter formatCounter120,121
+formatCounter' formatCounter'126,127
+formatCounter' formatCounter'127,128
+formatNumeral formatNumeral136,137
+formatNumeral formatNumeral137,138
+parseSection parseSection164,165
+parseSection parseSection165,166
 
 ./test/Spec.hs,30
 main main0,1
