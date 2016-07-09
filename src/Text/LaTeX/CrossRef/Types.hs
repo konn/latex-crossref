@@ -85,6 +85,6 @@ data RefOptions = RefOptions { subsumes     :: HashMap RefItem [RefItem]
                              }
                 deriving (Show, Eq, Generic)
 
-instance MonadState RefFState Machine where
-  get = getPast
-  put = sendFuture
+-- instance MonadState RefFState Machine where
+--   get = getPast
+--   put = sendFuture
