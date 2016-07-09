@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts, OverloadedStrings, ViewPatterns #-}
 module Text.LaTeX.CrossRef
-    ( RefOptions(..), procCiteRef
+    ( RefOptions(..), procCrossRef
     ) where
 import Text.LaTeX.CrossRef.Orphans ()
 import Text.LaTeX.CrossRef.Types
@@ -12,6 +12,7 @@ import           Control.Lens.Extras    (is)
 import           Control.Monad          (forM_, when)
 import           Control.Monad.Tardis   (evalTardis, getsFuture)
 import           Control.Monad.Tardis   (modifyBackwards)
+import           Control.Monad.Tardis   (runTardis)
 import           Data.Foldable          (for_)
 import qualified Data.HashMap.Strict    as HM
 import qualified Data.HashSet           as HS
@@ -23,8 +24,14 @@ import           Text.LaTeX.Base.Syntax (LaTeX (..), TeXArg (..))
 
 default (Integer)
 
-procCiteRef :: RefOptions -> LaTeX -> LaTeX
-procCiteRef opts lat = give opts $ flip evalTardis emptyRefState $ do
+procCrossRef :: RefOptions -> LaTeX -> LaTeX
+procCrossRef opts lat = give opts $ evalTardis (procCrossRef' lat) emptyRefState
+
+runCrossRef :: RefOptions -> LaTeX -> (LaTeX, (RefBState, RefFState))
+runCrossRef opts lat = give opts $ runTardis (procCrossRef' lat) emptyRefState
+
+procCrossRef' :: Given RefOptions => LaTeX -> Machine LaTeX
+procCrossRef' lat = do
   p <- refProc lat
   dic <- use resolved
   modifyBackwards $ numbers .~ dic
@@ -69,26 +76,31 @@ refProc (TeXComm "label" (fixArgs -> [arg])) = do
   c <- uses context head
   saveCounter c (render arg)
   return TeXEmpty
-refProc i@(TeXComm "item" _) = do
+refProc (TeXComm "item" arg) = do
   c <- uses context head
   when (is _Item c) $ tick c
-  return i
-refProc i@(TeXComm sect _)
+  TeXComm "item" <$> mapM (mapArgM refProc) arg
+refProc (TeXComm sect args)
   | Just n <- parseSection (T.pack sect) = do
   tick (Section n)
-  return i
+  TeXComm sect <$> mapM (mapArgM refProc) args
 refProc i@(TeXCommS "item") = do
   c <- uses context head
   when (is _Item c) $ tick c
   return i
 refProc (TeXEnv "enumerate" args body) = do
   lvl <- uses context (maybe 1 succ . maximumOf (folded . _Item))
-  TeXEnv "enumerate" args <$> withCtx (Item lvl) (refProc body)
-         <* (counters . at (Item lvl) .= Nothing)
+  i <- withCtx (Item lvl) $ do
+    TeXEnv "enumerate" <$> mapM (mapArgM refProc) args
+                       <*>  (refProc body)
+  counters . at (Item lvl) .= Nothing
+  return i
 refProc (TeXEnv name args body)
   | T.pack name `HS.member` numberedEnvs given =
-    TeXEnv name args <$> withCtx (Environment $ T.pack name) (refProc body)
-  | otherwise = TeXEnv name args <$> refProc body
+    withCtx (Environment $ T.pack name) $ do
+      tick (Environment $ T.pack name)
+      TeXEnv name <$> mapM (mapArgM refProc) args <*> (refProc body)
+  | otherwise = TeXEnv name <$> mapM (mapArgM refProc) args <*> refProc body
 -- refProc (TeXMath Parentheses lat2) = undefined
 -- refProc (TeXMath Square lat2) = undefined
 -- refProc (TeXMath Dollar lat2) = undefined
