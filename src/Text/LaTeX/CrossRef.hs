@@ -1,18 +1,18 @@
 {-# LANGUAGE FlexibleContexts, OverloadedStrings, ViewPatterns #-}
 module Text.LaTeX.CrossRef
-    ( RefOptions(..), procCrossRef
+    ( RefOptions(..), Numeral(..), LabelFormat(..),
+      RefItem(..), Formats, procCrossRef
     ) where
 import Text.LaTeX.CrossRef.Orphans ()
 import Text.LaTeX.CrossRef.Types
 
-import           Control.Lens           (at, folded, maximumOf)
-import           Control.Lens           (toListOf, use, uses, view, (%=))
-import           Control.Lens           ((.=), (.~), (^?))
+import           Control.Lens           (at, folded, ix, maximumOf, toListOf)
+import           Control.Lens           (use, uses, view, (%=), (.=), (.~))
+import           Control.Lens           ((^?))
 import           Control.Lens.Extras    (is)
 import           Control.Monad          (forM_, when)
 import           Control.Monad.Tardis   (evalTardis, getsFuture)
 import           Control.Monad.Tardis   (modifyBackwards)
-import           Control.Monad.Tardis   (runTardis)
 import           Data.Foldable          (for_)
 import qualified Data.HashMap.Strict    as HM
 import qualified Data.HashSet           as HS
@@ -20,15 +20,12 @@ import           Data.Maybe             (fromMaybe)
 import           Data.Reflection        (Given (..), give)
 import qualified Data.Text              as T
 import           Text.LaTeX.Base.Render (render)
-import           Text.LaTeX.Base.Syntax (LaTeX (..), TeXArg (..))
+import           Text.LaTeX.Base.Syntax (LaTeX (..), MathType (..), TeXArg (..))
 
 default (Integer)
 
 procCrossRef :: RefOptions -> LaTeX -> LaTeX
 procCrossRef opts lat = give opts $ evalTardis (procCrossRef' lat) emptyRefState
-
-runCrossRef :: RefOptions -> LaTeX -> (LaTeX, (RefBState, RefFState))
-runCrossRef opts lat = give opts $ runTardis (procCrossRef' lat) emptyRefState
 
 procCrossRef' :: Given RefOptions => LaTeX -> Machine LaTeX
 procCrossRef' lat = do
@@ -39,7 +36,7 @@ procCrossRef' lat = do
 
 resetDependents :: Given RefOptions => RefItem -> Machine ()
 resetDependents ri = do
-  let RefOptions revDeps _ = given
+  let RefOptions revDeps _ _ = given
   forM_ (fromMaybe [] $ HM.lookup ri revDeps) $ \k ->
     counters . at k .= Nothing
 
@@ -58,9 +55,9 @@ tick ri = do
                              (takeWhile (maybe True (<lvl) . (^? _Section))
                              $ reverse bs)
 
-saveCounter :: RefItem -> T.Text -> Machine ()
-saveCounter ri lab = do
-  i <- uses (counters . at ri) (fromMaybe 0)
+saveCounter :: Given RefOptions => T.Text -> Machine ()
+saveCounter lab = do
+  i <- formatCounter
   resolved . at lab .= Just i
 
 fixArgs :: [TeXArg] -> [LaTeX]
@@ -71,10 +68,9 @@ withCtx ri act = (context %= (ri:)) *> act <* (context %= tail)
 
 refProc :: Given RefOptions => LaTeX -> Machine LaTeX
 refProc i@(TeXComm "ref" (fixArgs -> [arg])) =
-  getsFuture $ maybe i (TeXRaw . T.pack . show) . HM.lookup (render arg) . view numbers
+  getsFuture $ fromMaybe i  . HM.lookup (render arg) . view numbers
 refProc (TeXComm "label" (fixArgs -> [arg])) = do
-  c <- uses context head
-  saveCounter c (render arg)
+  saveCounter (render arg)
   return TeXEmpty
 refProc (TeXComm "item" arg) = do
   c <- uses context head
@@ -101,9 +97,9 @@ refProc (TeXEnv name args body)
       tick (Environment $ T.pack name)
       TeXEnv name <$> mapM (mapArgM refProc) args <*> (refProc body)
   | otherwise = TeXEnv name <$> mapM (mapArgM refProc) args <*> refProc body
--- refProc (TeXMath Parentheses lat2) = undefined
--- refProc (TeXMath Square lat2) = undefined
--- refProc (TeXMath Dollar lat2) = undefined
+refProc (TeXMath Parentheses lat2) = TeXMath Parentheses <$> refProc lat2
+refProc (TeXMath Square lat2) = TeXMath Square <$> refProc lat2
+refProc (TeXMath Dollar lat2) = TeXMath Dollar <$> refProc lat2
 refProc (TeXBraces i) = TeXBraces <$> refProc i
 refProc (TeXSeq i1 i2) = TeXSeq <$> refProc i1 <*> refProc i2
 refProc (TeXComm name args) = TeXComm name <$> mapM (mapArgM refProc) args
@@ -119,6 +115,55 @@ mapArgM f (SymArg arg) = SymArg <$> f arg
 mapArgM f (MSymArg args) = MSymArg <$> mapM f args
 mapArgM f (ParArg arg) = ParArg <$> f arg
 mapArgM f (MParArg args) = MParArg <$> mapM f args
+
+formatCounter :: Given RefOptions => Machine LaTeX
+formatCounter = do
+  ctrs <- use counters
+  ri   <- uses context head
+  i    <- uses counters (fromMaybe 0 . view (at ri))
+  return $ formatCounter' ctrs ri i
+
+formatCounter' :: Given RefOptions => Counters -> RefItem -> Integer -> LaTeX
+formatCounter' cnts ri i = foldMap format fmts
+  where
+    dic = formats given
+    fmts = fromMaybe [ThisCounter Arabic] (HM.lookup ri dic)
+    format :: LabelFormat -> LaTeX
+    format (ThisCounter p) = formatNumeral p i
+    format (OtherCounter p c) = formatNumeral p (fromMaybe 0 (HM.lookup c cnts))
+    format (Str l) = l
+
+formatNumeral :: Numeral -> Integer -> LaTeX
+formatNumeral Arabic i = TeXRaw $ T.pack $ show i
+formatNumeral SmallRoman i =
+  let digit = ["0", "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"]
+  in TeXRaw $ fromMaybe (T.pack $ show i) $ digit ^? ix (fromInteger i)
+formatNumeral CapitalRoman i =
+  let digit = ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
+  in TeXRaw $ fromMaybe (T.pack $ show i) $ digit ^? ix (fromInteger i)
+formatNumeral SmallGreek i =
+  fromMaybe (TeXRaw $ T.pack $ show i) $
+  map (TeXMath Dollar . TeXCommS)
+  [ "alpha" , "beta", "gamma", "delta", "varepslion"
+  , "zeta", "eta", "theta", "iota", "kappa"
+  , "lambda", "mu", "nu", "xi"
+  , "pi", "rho", "sigma", "tau"
+  , "upsilon", "phi", "chi", "psi", "omega"] ^? ix (fromInteger i)
+formatNumeral CapitalGreek i =
+  fromMaybe (TeXRaw $ T.pack $ show i) $
+  map (TeXMath Dollar . TeXCommS)
+  [ "Alpha" , "Beta", "Gamma", "Delta"
+  , "Theta"
+  , "Lambda", "Xi"
+  , "Pi", "Rho", "Sigma"
+  , "Upsilon", "Phi", "Psi", "Omega"] ^? ix (fromInteger i)
+
+formatNumeral SmallAlpha i =
+  TeXRaw $ fromMaybe (T.pack $ show i) $
+  map T.singleton ['a'..'z'] ^? ix (fromInteger i)
+formatNumeral LargeAlpha i =
+  TeXRaw $ fromMaybe (T.pack $ show i) $
+  map T.singleton ['A'..'Z'] ^? ix (fromInteger i)
 
 parseSection :: T.Text -> Maybe Int
 parseSection comm
