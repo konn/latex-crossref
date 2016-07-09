@@ -27,7 +27,7 @@ data RefVal = Number Integer
 data Counter = Counter { _name       :: Text
                        , _dependents :: HashSet Text
                        }
-             deriving (Read, Show, Eq, Hashable, Generic)
+             deriving (Read, Show, Eq, Generic)
 
 data RefItem = Item Level
              | Environment Text
