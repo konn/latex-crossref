@@ -17,6 +17,7 @@ import           Data.Foldable          (for_)
 import qualified Data.HashMap.Strict    as HM
 import qualified Data.HashSet           as HS
 import           Data.Maybe             (fromMaybe)
+import           Data.Monoid            ((<>))
 import           Data.Reflection        (Given (..), give)
 import qualified Data.Text              as T
 import           Text.LaTeX.Base.Render (render)
@@ -72,7 +73,7 @@ refProc i@(TeXComm "ref" (fixArgs -> [arg])) = do
   let tag = render arg
   lat <- getsFuture $ fromMaybe i  . HM.lookup tag . view numbers
   return $ if useHyperlink given
-           then TeXComm "hyperlink" [FixArg arg, FixArg lat]
+           then TeXComm "href" [FixArg ("#" <> arg), FixArg lat]
            else lat
 refProc l@(TeXComm "label" (fixArgs -> [arg])) = do
   saveCounter (render arg)
