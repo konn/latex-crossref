@@ -37,7 +37,7 @@ procCrossRef' lat = do
 
 resetDependents :: Given RefOptions => RefItem -> Machine ()
 resetDependents ri = do
-  let RefOptions revDeps _ _ = given
+  let RefOptions revDeps _ _ _ _ = given
   forM_ (fromMaybe [] $ HM.lookup ri revDeps) $ \k ->
     counters . at k .= Nothing
 
@@ -68,11 +68,15 @@ withCtx :: Given RefOptions => RefItem -> Machine a -> Machine a
 withCtx ri act = (context %= (ri:)) *> act <* (context %= tail)
 
 refProc :: Given RefOptions => LaTeX -> Machine LaTeX
-refProc i@(TeXComm "ref" (fixArgs -> [arg])) =
-  getsFuture $ fromMaybe i  . HM.lookup (render arg) . view numbers
-refProc (TeXComm "label" (fixArgs -> [arg])) = do
+refProc i@(TeXComm "ref" (fixArgs -> [arg])) = do
+  let tag = render arg
+  lat <- getsFuture $ fromMaybe i  . HM.lookup tag . view numbers
+  return $ if useHyperlink given
+           then TeXComm "hyperref" [FixArg (TeXSeq "#" arg), FixArg lat]
+           else lat
+refProc l@(TeXComm "label" (fixArgs -> [arg])) = do
   saveCounter (render arg)
-  return TeXEmpty
+  return $ if remainLabel given then l else TeXEmpty
 refProc (TeXComm "item" arg) = do
   c <- uses context head
   when (is _Item c) $ tick c

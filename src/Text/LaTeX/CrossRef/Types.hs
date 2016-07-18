@@ -82,6 +82,8 @@ type Formats = HashMap RefItem [LabelFormat]
 data RefOptions = RefOptions { subsumes     :: HashMap RefItem [RefItem]
                              , numberedEnvs :: HashSet Text
                              , formats      :: Formats
+                             , remainLabel  :: Bool
+                             , useHyperlink :: Bool
                              }
                 deriving (Show, Eq, Generic)
 
