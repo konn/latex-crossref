@@ -72,7 +72,7 @@ refProc i@(TeXComm "ref" (fixArgs -> [arg])) = do
   let tag = render arg
   lat <- getsFuture $ fromMaybe i  . HM.lookup tag . view numbers
   return $ if useHyperlink given
-           then TeXComm "hyperref" [FixArg (TeXSeq "#" arg), FixArg lat]
+           then TeXComm "hyperlink" [FixArg arg, FixArg lat]
            else lat
 refProc l@(TeXComm "label" (fixArgs -> [arg])) = do
   saveCounter (render arg)
