@@ -3,7 +3,6 @@ module Text.LaTeX.CrossRef
     ( RefOptions(..), Numeral(..), LabelFormat(..),
       RefItem(..), Formats, procCrossRef
     ) where
-import Text.LaTeX.CrossRef.Orphans ()
 import Text.LaTeX.CrossRef.Types
 
 import           Control.Lens           (at, folded, ix, maximumOf, toListOf)

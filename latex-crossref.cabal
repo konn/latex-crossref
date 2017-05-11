@@ -16,8 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Text.LaTeX.CrossRef
-  other-modules:       Text.LaTeX.CrossRef.Orphans
-                       Text.LaTeX.CrossRef.Types
+  other-modules:       Text.LaTeX.CrossRef.Types
   build-depends:       base >= 4.7 && < 5
                      , containers
                      , unordered-containers
@@ -25,7 +24,7 @@ library
                      , text
                      , bytestring
                      , mtl
-                     , HaTeX
+                     , HaTeX                 >= 3.17.2.0
                      , roman-numerals
                      , lens
                      , reflection
